@@ -8,17 +8,18 @@
 void function() {
     window.CSSUsage.StyleWalker.recipesToRun.push( function windowOpen(/*HTML DOM Element*/ element, results) {
 
-    results["use"] = results["use"] || { count: 0};
-    
-        if(element.nodeName == "SCRIPT") {
-            var api = "window.open(";
+        results["use"] = results["use"] || { count: 0, errors: 0};
+        
+        try {
             
-            // if inline script. ensure that it's not our recipe script and look for string of interest
-            if (element.text !== undefined && element.text.indexOf(api) != -1) {
-                results["use"].count += (element.innerText.match(/window.open\(/g) || []).length;
-            }
-            else if (element.src !== undefined && element.src != "" && element.src.indexOf("Recipe.min.js") == -1) {
-                try {
+            if(element.nodeName == "SCRIPT") {
+                var api = "window.open(";
+                
+                // if inline script. ensure that it's not our recipe script and look for string of interest
+                if (element.text !== undefined && element.text.indexOf(api) != -1) {
+                    results["use"].count += (element.innerText.match(/window.open\(/g) || []).length;
+                }
+                else if (element.src !== undefined && element.src != "" && element.src.indexOf("Recipe.min.js") == -1) {
                     var xhr = new XMLHttpRequest();
                     xhr.open("GET", element.src, false);
                     xhr.send();
@@ -27,10 +28,10 @@ void function() {
                         results["use"].count += (xhr.responseText.match(/window.open\(/g) || []).length;
                     }
                 }
-                catch(err) {
-                    // do nothing
-                }
             }
+        }
+        catch(err) {
+            results["use"].errors++;
         }
 
         return results;
